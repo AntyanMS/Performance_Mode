@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=♻️ TLP применить снова
+Comment=Повторно применить текущий профиль (tlp start), sudo
+Exec=/bin/bash __CHUWI_HOME__/power-mode.sh reset
+Icon=view-refresh
+Terminal=true
+Categories=Utility;
+StartupNotify=false

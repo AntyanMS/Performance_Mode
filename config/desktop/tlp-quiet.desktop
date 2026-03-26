@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=🔋 TLP Экономия (eco)
+Comment=Только cpu0+cpu1 онлайн, мин. яркость, TLP eco, sudo
+Exec=/bin/bash __CHUWI_HOME__/power-mode.sh eco
+Icon=audio-volume-muted
+Terminal=true
+Categories=Utility;
+StartupNotify=false

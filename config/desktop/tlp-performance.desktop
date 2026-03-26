@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=🚀 TLP Максимум
+Comment=100% CPU, яркость макс, sudo (кулер — EC)
+Exec=/bin/bash __CHUWI_HOME__/power-mode.sh performance
+Icon=system-run
+Terminal=true
+Categories=Utility;
+StartupNotify=false

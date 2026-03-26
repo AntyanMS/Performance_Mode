@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=⚖️ TLP Баланс
+Comment=~½ потоков, ~50% потолок CPU, яркость 30%, sudo
+Exec=/bin/bash __CHUWI_HOME__/power-mode.sh balanced
+Icon=preferences-system-power
+Terminal=true
+Categories=Utility;
+StartupNotify=false
