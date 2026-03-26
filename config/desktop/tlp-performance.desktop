@@ -2,9 +2,9 @@
 Version=1.0
 Type=Application
 Name=🚀 TLP Максимум
-Comment=100% CPU, яркость макс, sudo (кулер — EC)
-Exec=/bin/bash __CHUWI_HOME__/power-mode.sh performance
+Comment=Пароль через zenity, без терминала; уведомление после применения
+Exec=/usr/local/bin/chuwi-tlp-runner performance
 Icon=system-run
-Terminal=true
+Terminal=false
 Categories=Utility;
-StartupNotify=false
+StartupNotify=true

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Установка TLP и профилей Chuwi CoreBook X под конкретного пользователя (Ubuntu 24.04).
 # Запуск: ./install.sh   или   sudo ./install.sh
-# Другой пользователь:   sudo TARGET_USER=имя ./install.sh
+# Другой пользователь:   sudo TARGET_USER="логин" ./install.sh
 
 set -euo pipefail
 
@@ -21,7 +21,7 @@ done
 TARGET_USER="${TARGET_USER:-${SUDO_USER:-$USER}}"
 if [[ "$TARGET_USER" == "root" ]]; then
   echo "Ошибка: не удалось определить целевого пользователя. Запустите не от root, либо:"
-  echo "  sudo TARGET_USER=\"\$USER\" $0"
+  echo "  sudo TARGET_USER=\"логин_в_системе\" $0"
   exit 1
 fi
 
@@ -60,7 +60,7 @@ fi
 
 echo ">>> Обновление индекса пакетов и установка TLP …"
 apt-get update -qq
-apt-get install -y tlp tlp-rdw
+apt-get install -y tlp tlp-rdw libnotify-bin zenity
 
 echo ">>> Включение сервиса TLP …"
 systemctl enable tlp.service
@@ -81,15 +81,18 @@ chmod 0644 /etc/tlp.d/97-chuwi-readme.conf
 echo ">>> Установка power-mode.sh в ${TARGET_HOME}/power-mode.sh …"
 install -o "$TARGET_USER" -g "$TARGET_USER" -m 0755 "$SCRIPT_DIR/config/power-mode.sh" "${TARGET_HOME}/power-mode.sh"
 
+echo ">>> Установка GUI-запуска TLP в /usr/local/bin (zenity + sudo -A, без терминала) …"
+install -m 0755 "$SCRIPT_DIR/config/chuwi-askpass" /usr/local/bin/chuwi-askpass
+install -m 0755 "$SCRIPT_DIR/config/chuwi-tlp-runner.sh" /usr/local/bin/chuwi-tlp-runner
+install -m 0755 "$SCRIPT_DIR/config/chuwi-tlp-notify-root.sh" /usr/local/bin/chuwi-tlp-notify-root
+rm -f /usr/local/bin/chuwi-tlp-notify "${TARGET_HOME}/power-mode-notify.sh"
+
 echo ">>> Ярлыки в ${TARGET_HOME}/.local/share/applications/ …"
 install -d -o "$TARGET_USER" -g "$TARGET_USER" -m 0755 "${TARGET_HOME}/.local/share/applications"
 for src in "$SCRIPT_DIR"/config/desktop/*.desktop; do
   [[ -f "$src" ]] || continue
   base=$(basename "$src")
-  tmp=$(mktemp)
-  sed "s|__CHUWI_HOME__|${TARGET_HOME}|g" "$src" >"$tmp"
-  install -o "$TARGET_USER" -g "$TARGET_USER" -m 0644 "$tmp" "${TARGET_HOME}/.local/share/applications/${base}"
-  rm -f "$tmp"
+  install -o "$TARGET_USER" -g "$TARGET_USER" -m 0644 "$src" "${TARGET_HOME}/.local/share/applications/${base}"
 done
 
 if command -v update-desktop-database >/dev/null 2>&1; then
@@ -104,6 +107,7 @@ echo ""
 echo "Готово."
 echo "  Пользователь: $TARGET_USER"
 echo "  Скрипт режимов:  ${TARGET_HOME}/power-mode.sh {eco|balanced|performance|reset}"
+echo "  GUI-обёртка:     /usr/local/bin/chuwi-tlp-runner (ярлыки tlp-*.desktop)"
 echo "  Ярлыки:          ${TARGET_HOME}/.local/share/applications/tlp-*.desktop"
 echo "  TLP:             systemctl status tlp"
 echo "  Проверка:        sudo tlp-stat -s   и   sudo tlp-stat -p"

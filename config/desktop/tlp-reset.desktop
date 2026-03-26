@@ -2,9 +2,9 @@
 Version=1.0
 Type=Application
 Name=♻️ TLP применить снова
-Comment=Повторно применить текущий профиль (tlp start), sudo
-Exec=/bin/bash __CHUWI_HOME__/power-mode.sh reset
+Comment=Пароль через zenity, без терминала; уведомление после применения
+Exec=/usr/local/bin/chuwi-tlp-runner reset
 Icon=view-refresh
-Terminal=true
+Terminal=false
 Categories=Utility;
-StartupNotify=false
+StartupNotify=true

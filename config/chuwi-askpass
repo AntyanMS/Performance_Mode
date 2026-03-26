@@ -1,0 +1,3 @@
+#!/bin/sh
+# Для sudo -A: графический запрос пароля (без терминала).
+exec /usr/bin/zenity --password --title="Пароль администратора — TLP" 2>/dev/null

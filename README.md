@@ -2,6 +2,8 @@
 
 Репозиторий для ноутбука **CHUWI CoreBook X** с настройкой **TLP** вместо штатного **power-profiles-daemon**, три пользовательских режима питания и ярлыки в сессии GNOME.
 
+**Оповещения:** после переключения режима из ярлыка в GNOME показывается **системное уведомление** (название профиля и краткое описание): используются **`notify-send`** / **`gdbus`**; пароль администратора запрашивается через **zenity** и **`sudo -A`** — **без открытия окна терминала**.
+
 ---
 **Автор:** [AntyanMS](https://github.com/AntyanMS)  
 **Публичный репозиторий:** [github.com/AntyanMS/Performance_Mode](https://github.com/AntyanMS/Performance_Mode)  
@@ -35,12 +37,18 @@
 
 ## Состав репозитория
 
+Каталог после клонирования (в инструкции ниже — в **`$HOME/chuwi`**; если клонировали без целевого пути, имя папки будет **`Performance_Mode`** — это нормально).
+
 ```
-chuwi/
+.
+├── .gitignore
 ├── README.md                 # этот файл
 ├── install.sh                # установка под выбранного пользователя
 ├── config/
 │   ├── power-mode.sh         # логика eco / balanced / performance / reset
+│   ├── chuwi-askpass          # пароль для sudo -A (zenity)
+│   ├── chuwi-tlp-runner.sh    # ярлык GNOME → sudo -A → root-скрипт
+│   ├── chuwi-tlp-notify-root.sh
 │   ├── tlp/
 │   │   └── 98-chuwi-radios.conf   # не отключать Wi‑Fi/BT на батарее
 │   └── desktop/
@@ -52,7 +60,17 @@ chuwi/
     └── export-installed-packages.sh   # вспомогательный экспорт списка пакетов
 ```
 
-После установки скрипт копируется в домашний каталог пользователя как **`$HOME/power-mode.sh`**, ярлыки — в **`$HOME/.local/share/applications/`**. В **`/etc/tlp.d/`** появляются `97-chuwi-readme.conf`, `98-chuwi-radios.conf`; файл **`99-chuwi-active-mode.conf`** создаётся и перезаписывается **только** при запуске `power-mode.sh` (не править вручную).
+После установки в домашний каталог копируется **`$HOME/power-mode.sh`**; в **`/usr/local/bin/`** ставятся **`chuwi-tlp-runner`**, **`chuwi-tlp-notify-root`**, **`chuwi-askpass`** (графический пароль через **zenity** + **`sudo -A`** — **без pkexec и без окна терминала**). Ярлыки — в **`$HOME/.local/share/applications/`**. В **`/etc/tlp.d/`** появляются `97-chuwi-readme.conf`, `98-chuwi-radios.conf`; **`99-chuwi-active-mode.conf`** перезаписывается при запуске `power-mode.sh`.
+
+### Ярлыки без терминала и уведомления
+
+Ярлыки **`tlp-*.desktop`** вызывают **`/usr/local/bin/chuwi-tlp-runner`**: окно **zenity** запрашивает пароль, **`sudo -A`** запускает сценарий от root, затем **`notify-send`** (пакеты **`zenity`**, **`libnotify-bin`** ставит **`install.sh`**); запасной вариант — **`gdbus`**.
+
+**Если уведомлений не видно:** «Не беспокоить», настройки уведомлений; тест: `notify-send -a TLP test "сообщение"`.
+
+**Снимите с дока старые значки TLP** и закрепите заново из меню после обновления.
+
+Ручной запуск: **`sudo "$HOME/power-mode.sh" …`**.
 
 ---
 
@@ -74,11 +92,13 @@ chuwi/
 
    Установщик сам запросит `sudo`. Целевой пользователь по умолчанию берётся из **`SUDO_USER`**, а если его нет — из **`USER`** (при обычном `./install.sh` это текущий пользователь).
 
-3. Явно задать пользователя (например, запуск из root или нетипичная среда):
+3. Явно задать пользователя, если скрипт не должен брать текущий логин (удобно из **сессии root**, где **`USER=root`**):
 
    ```bash
-   sudo TARGET_USER="$USER" ./install.sh
+   sudo TARGET_USER="имя_пользователя" ./install.sh
    ```
+
+   Если вы обычный пользователь и запускаете `./install.sh` сами, шаг 3 не нужен — достаточно п. 2.
 
 4. После установки применить комфортный режим (все логические CPU, яркость 100 %):
 
