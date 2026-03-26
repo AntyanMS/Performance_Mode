@@ -6,6 +6,9 @@ set -euo pipefail
 
 MODE=${1:-}
 
+# eco: остаются онлайн cpu0 … cpu(N-1); все cpuN с n >= N — offline (hotplug).
+ECO_ONLINE_CPU_COUNT=4
+
 BACKLIGHT=$(echo /sys/class/backlight/*/brightness 2>/dev/null | awk '{print $1}')
 BACKLIGHT_MAX="${BACKLIGHT%/brightness}/max_brightness"
 
@@ -45,22 +48,23 @@ cpus_online_all() {
     done
 }
 
-cpus_keep_first_two_only() {
+cpus_keep_eco_cpus() {
     local f n dir nums=()
+    local keep="${ECO_ONLINE_CPU_COUNT:?}"
     for f in /sys/devices/system/cpu/cpu*/online; do
         [[ -f "$f" ]] || continue
         dir=$(dirname "$f")
         n=$(basename "$dir")
         n=${n#cpu}
         [[ "$n" =~ ^[0-9]+$ ]] || continue
-        (( n >= 2 )) && nums+=("$n")
+        (( n >= keep )) && nums+=("$n")
     done
     local sorted
     mapfile -t sorted < <(printf '%s\n' "${nums[@]}" | sort -nr)
     for n in "${sorted[@]}"; do
         echo 0 | sudo tee "/sys/devices/system/cpu/cpu${n}/online" >/dev/null || true
     done
-    echo "CPU: онлайн только cpu0 и cpu1 (остальные отключены через hotplug)"
+    echo "CPU: eco — онлайн ${keep} потоков (cpu0–cpu$((keep - 1))), остальные offline"
 }
 
 cpus_keep_half_threads() {
@@ -111,7 +115,7 @@ PCIE_ASPM_ON_BAT=powersupersave
 RUNTIME_PM_ON_AC=auto
 RUNTIME_PM_ON_BAT=auto
 EOF
-    echo "🔋 Режим ECO: низкий потолок P-state (см. CPU_MAX в файле), без turbo, 2 ядра, тёмный экран, агрессивный ASPM"
+    echo "🔋 Режим ECO: низкий потолок P-state (см. CPU_MAX в файле), без turbo, ${ECO_ONLINE_CPU_COUNT} логических CPU онлайн, тёмный экран, агрессивный ASPM"
     ;;
   balanced|b)
     cpus_online_all
@@ -185,7 +189,7 @@ if [[ "$MODE" != "reset" && "$MODE" != "r" ]]; then
 fi
 
 if [[ "$MODE" == "eco" || "$MODE" == "quiet" || "$MODE" == "q" ]]; then
-  cpus_keep_first_two_only
+  cpus_keep_eco_cpus
 elif [[ "$MODE" == "balanced" || "$MODE" == "b" ]]; then
   cpus_keep_half_threads
 fi
@@ -203,4 +207,4 @@ cat /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference 2>/dev/nu
 sudo tlp-stat -p 2>/dev/null | grep -E 'scaling_governor|energy_performance_preference|boost|amd_pstate' | head -25 || true
 echo -n "Онлайн логических CPU: "
 grep -c '^processor' /proc/cpuinfo 2>/dev/null || true
-echo "(ожидается: performance=все, balanced≈половина, eco=2)"
+echo "(ожидается: performance=все, balanced≈половина, eco=${ECO_ONLINE_CPU_COUNT})"

@@ -114,7 +114,7 @@
 
 | Режим | Команда | Идея |
 |--------|---------|------|
-| **eco** | `sudo "$HOME/power-mode.sh" eco` | Минимум энергии: низкий потолок P-state, без turbo, **только 2** логических CPU, яркость **~1 %**, агрессивный PCIe ASPM; Wi‑Fi/BT **включены** |
+| **eco** | `sudo "$HOME/power-mode.sh" eco` | Минимум энергии: число потоков задаётся **`ECO_ONLINE_CPU_COUNT`** в `power-mode.sh`, низкий потолок P-state (**`CPU_MAX_PERF_*`**), без turbo, яркость **~1 %**, агрессивный PCIe ASPM; Wi‑Fi/BT **включены** |
 | **balanced** | `sudo "$HOME/power-mode.sh" balanced` | **Половина** потоков, потолок **~36 % / 32 %** (AC / батарея), яркость **30 %** |
 | **performance** | `sudo "$HOME/power-mode.sh" performance` | Все потоки, governor **performance**, EPP **performance**, яркость **100 %** |
 | **reset** | `sudo "$HOME/power-mode.sh" reset` | Повторно `tlp start` для текущего `99-chuwi-active-mode.conf` |

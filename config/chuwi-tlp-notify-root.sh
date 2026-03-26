@@ -48,10 +48,14 @@ if [[ ! -x "$PM" ]]; then
   exit 1
 fi
 
+# Число потоков в eco — из той же константы, что в power-mode.sh (ECO_ONLINE_CPU_COUNT=N)
+ECO_N=$(sed -n 's/^ECO_ONLINE_CPU_COUNT=//p' "$PM" 2>/dev/null | head -1 | tr -cd '0-9')
+[[ -z "$ECO_N" ]] && ECO_N=4
+
 case "$MODE" in
   eco|quiet|q)
     TITLE="Экономия (eco)"
-    BODY="Минимум энергии: 2 потока, низкий потолок CPU, яркость ~1 %. Wi‑Fi и Bluetooth остаются включёнными."
+    BODY="Минимум энергии: ${ECO_N} логических CPU, низкий потолок CPU (см. CPU_MAX в power-mode.sh), яркость ~1 %. Wi‑Fi и Bluetooth включены."
     ;;
   balanced|b)
     TITLE="Баланс"
