@@ -69,6 +69,10 @@ systemctl start tlp.service || true
 echo ">>> Копирование /etc/tlp.d/98-chuwi-radios.conf …"
 install -m 0644 "$SCRIPT_DIR/config/tlp/98-chuwi-radios.conf" /etc/tlp.d/98-chuwi-radios.conf
 
+echo ">>> Хук после сна: стабильный Bluetooth (USB + bluetoothd) …"
+install -m 0755 "$SCRIPT_DIR/config/systemd/system-sleep/zzz-chuwi-bluetooth-usb-resume.sh" \
+  /usr/lib/systemd/system-sleep/zzz-chuwi-bluetooth-usb-resume.sh
+
 echo ">>> Подсказка в /etc/tlp.d/97-chuwi-readme.conf …"
 cat >/etc/tlp.d/97-chuwi-readme.conf <<EOF
 # Chuwi CoreBook X — профили режимов
@@ -80,6 +84,12 @@ chmod 0644 /etc/tlp.d/97-chuwi-readme.conf
 
 echo ">>> Установка power-mode.sh в ${TARGET_HOME}/power-mode.sh …"
 install -o "$TARGET_USER" -g "$TARGET_USER" -m 0755 "$SCRIPT_DIR/config/power-mode.sh" "${TARGET_HOME}/power-mode.sh"
+
+echo ">>> Параметры модуля btusb (скан/сон, Realtek USB) …"
+install -m 0644 "$SCRIPT_DIR/config/modprobe.d/chuwi-btusb.conf" /etc/modprobe.d/chuwi-btusb.conf
+
+echo ">>> Утилита сброса поиска Bluetooth …"
+install -m 0755 "$SCRIPT_DIR/scripts/chuwi-bluetooth-rescan.sh" /usr/local/bin/chuwi-bluetooth-rescan
 
 echo ">>> Установка GUI-запуска TLP в /usr/local/bin (zenity + sudo -A, без терминала) …"
 install -m 0755 "$SCRIPT_DIR/config/chuwi-askpass" /usr/local/bin/chuwi-askpass
@@ -111,6 +121,10 @@ echo "  GUI-обёртка:     /usr/local/bin/chuwi-tlp-runner (ярлыки tl
 echo "  Ярлыки:          ${TARGET_HOME}/.local/share/applications/tlp-*.desktop"
 echo "  TLP:             systemctl status tlp"
 echo "  Проверка:        sudo tlp-stat -s   и   sudo tlp-stat -p"
+echo "  Bluetooth:       USB_EXCLUDE_BTUSB в 98-chuwi-radios.conf; после сна — zzz-chuwi-bluetooth-usb-resume.sh"
+echo "  Если не видно новых: sudo chuwi-bluetooth-rescan"
+echo "    (тест без Wi‑Fi: CHUWI_BT_WIFI_OFF=1 sudo -E chuwi-bluetooth-rescan)"
+echo "  После первой установки btusb.conf перезагрузитесь или: modprobe -r btusb && modprobe btusb"
 echo ""
 echo "Если в «Параметры → Питание» пропал слайдер режимов — это ожидаемо: его даёт power-profiles-daemon."
 echo "Режимы переключайте ярлыками или командой выше."
